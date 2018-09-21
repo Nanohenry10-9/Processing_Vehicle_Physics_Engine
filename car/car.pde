@@ -1,27 +1,27 @@
 int points[][] = {
-  {-150, -100},
-  {60, -100},
-  {120, -10},
-  {200, -10},
-  {200, 100},
-  
-  {190, 100},
-  {160, 10},
-  {100, 10},
-  {80, 100},
-  {-80, 100},
-  {-100, 10},
-  {-160, 10},
-  {-190, 100},
-  
-  {-200, 100},
-  {-200, -10},
-  {-150, -10}
+  {-50, -100}, 
+  {60, -100}, 
+  {120, -10}, 
+  {200, -10}, 
+  {200, 70}, 
+
+  {190, 70}, 
+  {160, 10}, 
+  {100, 10}, 
+  {80, 70}, 
+  {-80, 70}, 
+  {-100, 10}, 
+  {-160, 10}, 
+  {-190, 70}, 
+
+  {-200, 70}, 
+  {-200, -10}, 
+  {-50, -10}
 };
 
 float wheelsize = 2;
 float carlength = 2.4;
-float carheight = 1.6;
+float carheight = 1.7;
 
 float tupd;
 
@@ -29,10 +29,12 @@ float zrot;
 
 int rwidth;
 
+float tspeed = 0;
+
 float tires[] = new float[4], tspeeds[] = new float[4], tloc[][] = {
-  {300, 200},
-  {-300, 200},
-  {300, -200},
+  {300, 200}, 
+  {-300, 200}, 
+  {300, -200}, 
   {-300, -200}
 };
 float trloc[][] = new float[4][2];
@@ -45,6 +47,45 @@ float speedx, speedy;
 float fangle, angle;
 float tx, ty;
 
+float speed = 0;
+boolean keys[] = new boolean[5];
+
+void keyPressed() {
+  if (key == 'a') {
+    keys[0] = true;
+  }
+  if (key == 'd') {
+    keys[1] = true;
+  }
+  if (key == 'w') {
+    keys[2] = true;
+  }
+  if (key == 's') {
+    keys[3] = true;
+  }
+  if (key == ' ') {
+    keys[4] = true;
+  }
+}
+
+void keyReleased() {
+  if (key == 'a') {
+    keys[0] = false;
+  }
+  if (key == 'd') {
+    keys[1] = false;
+  }
+  if (key == 'w') {
+    keys[2] = false;
+  }
+  if (key == 's') {
+    keys[3] = false;
+  }
+  if (key == ' ') {
+    keys[4] = false;
+  }
+}
+
 void setup() {
   fullScreen(P3D);
   rwidth = int(width / 10);
@@ -53,18 +94,29 @@ void setup() {
 
 void draw() {
   background(0, 0, 255);
-  
-  if (keyPressed) {
-    if (key == 'a' && fangle < radians(30)) {
-      fangle += 0.03;
-    } else if (key == 'd' && fangle > radians(-30)) {
-      fangle -= 0.03;
-    }
-  } else {
+
+  if (keys[0] && fangle < radians(30)) {
+    fangle += 0.03;
+  }
+  if (keys[1] && fangle > radians(-30)) {
+    fangle -= 0.03;
+  }
+  if (!keys[0] && !keys[1]) {
     if (abs(fangle) < 0.08) {
       fangle = 0;
     } else {
       fangle -= 0.06 * (fangle / abs(fangle));
+    }
+  }
+  if (keys[2] && speed < 2 && !keys[4]) {
+    speed += 0.05;
+  } else if (keys[3] && speed > -2 && !keys[4]) {
+    speed -= 0.05;
+  } else {
+    if (abs(speed) < 0.02) {
+      speed = 0;
+    } else {
+      speed -= 0.01 * (speed / abs(speed));
     }
   }
   for (int i = 0; i < 4; i++) {
@@ -74,10 +126,12 @@ void draw() {
     trloc[i][1] = sin(ang) * 200;
   }
   if (tires[0] > height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize - 50 || tires[2] > height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize - 50) {
-    angle += fangle / 50;
-    
-    speedx = -cos(angle) * 2;
-    speedy = sin(angle) * 2;
+    if (speed != 0) {
+      angle += (fangle / 40) * (speed / abs(speed)) * (abs(speed) / 2);
+    }
+
+    speedx = -cos(angle) * speed;
+    speedy = sin(angle) * speed;
     tx += speedx;
     ty += speedy;
   } else {
@@ -86,7 +140,15 @@ void draw() {
     tx += speedx;
     ty += speedy;
   }
-  zrot += 0.1;
+  if (!keys[4]) {
+    zrot += speed / 10;
+  } else {
+    if (abs(speed) < 0.02) {
+      speed = 0;
+    } else {
+      speed -= 0.02 * (speed / abs(speed));
+    }
+  }
   updatePhysics();
   drawTerrain();
   translate(width / 2, height / 2);
@@ -158,7 +220,7 @@ void drawCar(float a, float b) {
   stroke(200);
   strokeWeight(3);
   noFill();
-  
+
   for (int i = 0; i < 15; i++) {
     if (i >= 4 && i <= 12) {
       continue;
@@ -188,7 +250,7 @@ void drawCar(float a, float b) {
   }
   vertex(-points[15][0] * carlength, -240, points[15][1] * carheight);
   endShape(CLOSE);
-  
+
   rotateX(radians((angle(carh[0], -200, carh[2], 200) + angle(carh[1], -200, carh[3], 200)) / 2));
   rotateZ(radians(angle(a + 100, (carh[0] + carh[2]) / 2 - 200, b - 100, (carh[1] + carh[3]) / 2 - 200)));
   translate(width / -2, (carh[0] + carh[1] + carh[2] + carh[3]) / -4 + 150);
@@ -250,37 +312,37 @@ void drawTerrain() {
   tupd += 0.02;
 }
 
-int mode = 3; // 2 is default
+int mode = 2; // 2 is default
 
 float terrain(float x, float y) {
   switch (mode) {
-    case 0:
-      if (x > rwidth / 2 && y > rwidth / 2) {
-        return sin(tupd) * 150 + 150;
-      }
-      if (x < rwidth / 2 && y > rwidth / 2) {
-        return sin(tupd + HALF_PI) * 150 + 150;
-      }
-      if (x < rwidth / 2 && y < rwidth / 2) {
-        return sin(tupd + PI) * 150 + 150;
-      }
-      if (x > rwidth / 2 && y < rwidth / 2) {
-        return sin(tupd + PI + HALF_PI) * 150 + 150;
-      }
-      return 300;
-    case 1:
-      if (y > rwidth / 2) {
-        return sin(tupd) * 800 + 400;
-      }
-      return 300;
-    case 2:
-      x += tx;
-      y += ty;
-      return noise(x / 100.0, y / 100.0) * 600;
-    case 3:
-      return (x + tx) % 100 * 2 + 200;
-    case 4:
-      return (sin((x + tx) / 10) * 50 + 150) + (sin((y + ty) / 10) * 50 + 150);
+  case 0:
+    if (x > rwidth / 2 && y > rwidth / 2) {
+      return sin(tupd) * 150 + 150;
+    }
+    if (x < rwidth / 2 && y > rwidth / 2) {
+      return sin(tupd + HALF_PI) * 150 + 150;
+    }
+    if (x < rwidth / 2 && y < rwidth / 2) {
+      return sin(tupd + PI) * 150 + 150;
+    }
+    if (x > rwidth / 2 && y < rwidth / 2) {
+      return sin(tupd + PI + HALF_PI) * 150 + 150;
+    }
+    return 300;
+  case 1:
+    if (y > rwidth / 2) {
+      return sin(tupd) * 800 + 400;
+    }
+    return 300;
+  case 2:
+    x += tx;
+    y += ty;
+    return noise(x / 100.0, y / 100.0) * 600;
+  case 3:
+    return (x + tx) % 100 * 2 + 200;
+  case 4:
+    return (sin((x + tx) / 10) * 50 + 150) + (sin((y + ty) / 10) * 50 + 150);
   }
   return 300;
 }
