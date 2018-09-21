@@ -47,7 +47,7 @@ float speedx, speedy;
 float fangle, angle;
 float tx, ty;
 
-float speed = 0;
+float speed = 0, prevSpeed = 0;
 boolean keys[] = new boolean[5];
 
 void keyPressed() {
@@ -109,10 +109,10 @@ void draw() {
     }
   }
   if (keys[2] && speed < 2 && !keys[4]) {
-    speed += 0.05;
+    speed += constrain(abs(speed - 2), 0, 1) * 0.05;
   } else if (keys[3] && speed > -2 && !keys[4]) {
-    speed -= 0.05;
-  } else {
+    speed -= constrain(abs(-2 - speed), 0, 1) * 0.05;
+  } else if (!keys[2] && !keys[3]) {
     if (abs(speed) < 0.02) {
       speed = 0;
     } else {
@@ -127,9 +127,23 @@ void draw() {
   }
   if (tires[0] > height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize - 50 || tires[2] > height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize - 50) {
     if (speed != 0) {
-      angle += (fangle / 40) * (speed / abs(speed)) * (abs(speed) / 2);
+      if (keys[4]) {
+        angle += (fangle / 60) * (speed / abs(speed)) * (abs(speed) / 2);
+      } else {
+        angle += (fangle / 30) * (speed / abs(speed)) * (abs(speed) / 2);
+      }
     }
 
+    if (prevSpeed - speed > 0) {
+      carh[0] += (prevSpeed - speed) * 100;
+      carh[2] += (prevSpeed - speed) * 100;
+    }
+    if (speed - prevSpeed > 0) {
+      carh[1] += (speed - prevSpeed) * 100;
+      carh[3] += (speed - prevSpeed) * 100;
+    }
+    
+    prevSpeed = speed;
     speedx = -cos(angle) * speed;
     speedy = sin(angle) * speed;
     tx += speedx;
@@ -211,9 +225,10 @@ void drawCar(float a, float b) {
   strokeWeight(6);
   line(a, tires[0], 190, a, tires[2], -190);
   line(b, tires[1], 190, b, tires[3], -190);
-  line(a, (tires[0] + tires[2]) / 2, a + 100, (tires[0] + tires[2]) / 2 - 200);
-  line(b, (tires[1] + tires[3]) / 2, b - 100, (tires[1] + tires[3]) / 2 - 200);
-  line(a + 100, (tires[0] + tires[2]) / 2 - 200, b - 100, (tires[1] + tires[3]) / 2 - 200);
+  line(a, (tires[0] + tires[2]) / 2, b, (tires[1] + tires[3]) / 2);
+  //line(a, (tires[0] + tires[2]) / 2, a + 100, (tires[0] + tires[2]) / 2 - 200);
+  //line(b, (tires[1] + tires[3]) / 2, b - 100, (tires[1] + tires[3]) / 2 - 200);
+  //line(a + 100, (tires[0] + tires[2]) / 2 - 200, b - 100, (tires[1] + tires[3]) / 2 - 200);
   translate(width / 2, (carh[0] + carh[1] + carh[2] + carh[3]) / 4 - 150);
   rotateZ(radians(angle(a + 100, (carh[0] + carh[2]) / 2 - 200, b - 100, (carh[1] + carh[3]) / 2 - 200)));
   rotateX(-radians((angle(carh[0], -200, carh[2], 200) + angle(carh[1], -200, carh[3], 200)) / 2));
@@ -303,7 +318,15 @@ void drawTerrain() {
   for (int i = 0; i < rwidth - 1; i++) {
     beginShape(TRIANGLE_STRIP);
     for (int j = 0; j < rwidth; j++) {
-      fill(0, 255 - (terrain(i, j) / 600 * 255), 0);
+      if (mode == -1) {
+        if (sin(i / 10.0 + tx / 6.0) + sin(j / 10.0 + ty / 6.0) > 1) {
+          fill(0, 150, 0);
+        } else {
+          fill(0, 100, 0);
+        }
+      } else {
+        fill(0, 255 - (terrain(i, j) / 600 * 255), 0);
+      }
       vertex(i * 10, height / 2 + terrain(i, j), j * 10 - width / 2);
       vertex((i + 1) * 10, height / 2 + terrain(i + 1, j), j * 10 - width / 2);
     }
@@ -312,37 +335,39 @@ void drawTerrain() {
   tupd += 0.02;
 }
 
-int mode = 2; // 2 is default
+int mode = 2; // 2 is default, -1 is flat
 
 float terrain(float x, float y) {
   switch (mode) {
-  case 0:
-    if (x > rwidth / 2 && y > rwidth / 2) {
-      return sin(tupd) * 150 + 150;
-    }
-    if (x < rwidth / 2 && y > rwidth / 2) {
-      return sin(tupd + HALF_PI) * 150 + 150;
-    }
-    if (x < rwidth / 2 && y < rwidth / 2) {
-      return sin(tupd + PI) * 150 + 150;
-    }
-    if (x > rwidth / 2 && y < rwidth / 2) {
-      return sin(tupd + PI + HALF_PI) * 150 + 150;
-    }
-    return 300;
-  case 1:
-    if (y > rwidth / 2) {
-      return sin(tupd) * 800 + 400;
-    }
-    return 300;
-  case 2:
-    x += tx;
-    y += ty;
-    return noise(x / 100.0, y / 100.0) * 600;
-  case 3:
-    return (x + tx) % 100 * 2 + 200;
-  case 4:
-    return (sin((x + tx) / 10) * 50 + 150) + (sin((y + ty) / 10) * 50 + 150);
+    case 0:
+      if (x > rwidth / 2 && y > rwidth / 2) {
+        return sin(tupd) * 150 + 150;
+      }
+      if (x < rwidth / 2 && y > rwidth / 2) {
+        return sin(tupd + HALF_PI) * 150 + 150;
+      }
+      if (x < rwidth / 2 && y < rwidth / 2) {
+        return sin(tupd + PI) * 150 + 150;
+      }
+      if (x > rwidth / 2 && y < rwidth / 2) {
+        return sin(tupd + PI + HALF_PI) * 150 + 150;
+      }
+      return 300;
+    case 1:
+      if (y > rwidth / 2) {
+        return sin(tupd) * 800 + 400;
+      }
+      return 300;
+    case 2:
+      x += tx;
+      y += ty;
+      return noise(x / 100.0, y / 100.0) * 600;
+    case 3:
+      return (x + tx) % 100 * 2 + 200;
+    case 4:
+      return (sin((x + tx) / 10) * 50 + 150) + (sin((y + ty) / 10) * 50 + 150);
+    case 5:
+      return noise((x + tx) / 100) * 600;
   }
   return 300;
 }
