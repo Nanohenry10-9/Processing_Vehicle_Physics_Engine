@@ -35,6 +35,8 @@ float tires[] = new float[4], tspeeds[] = new float[4], tloc[][] = {
   {300, -200},
   {-300, -200}
 };
+float trloc[][] = new float[4][2];
+float carh[] = new float[4];
 
 float cam;
 
@@ -65,7 +67,13 @@ void draw() {
       fangle -= 0.06 * (fangle / abs(fangle));
     }
   }
-  if (tires[0] > height / 2 + terrain(rwidth / 2 - 30, rwidth / 2 + 20) - 50 * wheelsize - 50 || tires[2] > height / 2 + terrain(rwidth / 2 - 30, rwidth / 2 - 30) - 50 * wheelsize - 50) {
+  for (int i = 0; i < 4; i++) {
+    float ang = angler(0, 0, tloc[i][0], tloc[i][1]);
+    ang += angle;
+    trloc[i][0] = cos(ang) * 300;
+    trloc[i][1] = sin(ang) * 200;
+  }
+  if (tires[0] > height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize - 50 || tires[2] > height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize - 50) {
     angle += fangle / 50;
     
     speedx = -cos(angle) * 2;
@@ -101,32 +109,30 @@ void updatePhysics() {
   tspeeds[1] += 0.4;
   tspeeds[2] += 0.4;
   tspeeds[3] += 0.4;
-  float trloc[][] = new float[4][2];
   for (int i = 0; i < 4; i++) {
     float ang = angler(0, 0, tloc[i][0], tloc[i][1]);
     ang += angle;
     trloc[i][0] = cos(ang) * 300;
     trloc[i][1] = sin(ang) * 200;
   }
-  int i1 = 0, i2 = 1, i3 = 2, i4 = 3;
-  if (tires[0] > height / 2 + terrain(rwidth / 2 - trloc[i1][0] / 10, rwidth / 2 + trloc[i1][1] / 10) - 50 * wheelsize) {
-    float b = tires[0] - (height / 2 + terrain(rwidth / 2 - trloc[i1][0] / 10, rwidth / 2 + trloc[i1][1] / 10) - 50 * wheelsize);
-    tires[0] = height / 2 + terrain(rwidth / 2 - trloc[i1][0] / 10, rwidth / 2 + trloc[i1][1] / 10) - 50 * wheelsize - 2;
+  if (tires[0] > height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize) {
+    float b = tires[0] - (height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize);
+    tires[0] = height / 2 + terrain(rwidth / 2 - trloc[0][0] / 10, rwidth / 2 + trloc[0][1] / 10) - 50 * wheelsize - 2;
     tspeeds[0] *= -0.6 * min(b, 1);
   }
-  if (tires[1] > height / 2 + terrain(rwidth / 2 - trloc[i2][0] / 10, rwidth / 2 + trloc[i2][1] / 10) - 50 * wheelsize) {
-    float b = tires[1] - (height / 2 + terrain(rwidth / 2 - trloc[i2][0] / 10, rwidth / 2 + trloc[i2][1] / 10) - 50 * wheelsize);
-    tires[1] = height / 2 + terrain(rwidth / 2 - trloc[i2][0] / 10, rwidth / 2 + trloc[i2][1] / 10) - 50 * wheelsize - 2;
+  if (tires[1] > height / 2 + terrain(rwidth / 2 - trloc[1][0] / 10, rwidth / 2 + trloc[1][1] / 10) - 50 * wheelsize) {
+    float b = tires[1] - (height / 2 + terrain(rwidth / 2 - trloc[1][0] / 10, rwidth / 2 + trloc[1][1] / 10) - 50 * wheelsize);
+    tires[1] = height / 2 + terrain(rwidth / 2 - trloc[1][0] / 10, rwidth / 2 + trloc[1][1] / 10) - 50 * wheelsize - 2;
     tspeeds[1] *= -0.6 * min(b, 1);
   }
-  if (tires[2] > height / 2 + terrain(rwidth / 2 - trloc[i3][0] / 10, rwidth / 2 + trloc[i3][1] / 10) - 50 * wheelsize) {
-    float b = tires[2] - (height / 2 + terrain(rwidth / 2 - trloc[i3][0] / 10, rwidth / 2 + trloc[i3][1] / 10) - 50 * wheelsize);
-    tires[2] = height / 2 + terrain(rwidth / 2 - trloc[i3][0] / 10, rwidth / 2 + trloc[i3][1] / 10) - 50 * wheelsize - 2;
+  if (tires[2] > height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize) {
+    float b = tires[2] - (height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize);
+    tires[2] = height / 2 + terrain(rwidth / 2 - trloc[2][0] / 10, rwidth / 2 + trloc[2][1] / 10) - 50 * wheelsize - 2;
     tspeeds[2] *= -0.6 * min(b, 1);
   }
-  if (tires[3] > height / 2 + terrain(rwidth / 2 - trloc[i4][0] / 10, rwidth / 2 + trloc[i4][1] / 10) - 50 * wheelsize) {
-    float b = tires[3] - (height / 2 + terrain(rwidth / 2 - trloc[i4][0] / 10, rwidth / 2 + trloc[i4][1] / 10) - 50 * wheelsize);
-    tires[3] = height / 2 + terrain(rwidth / 2 - trloc[i4][0] / 10, rwidth / 2 + trloc[i4][1] / 10) - 50 * wheelsize - 2;
+  if (tires[3] > height / 2 + terrain(rwidth / 2 - trloc[3][0] / 10, rwidth / 2 + trloc[3][1] / 10) - 50 * wheelsize) {
+    float b = tires[3] - (height / 2 + terrain(rwidth / 2 - trloc[3][0] / 10, rwidth / 2 + trloc[3][1] / 10) - 50 * wheelsize);
+    tires[3] = height / 2 + terrain(rwidth / 2 - trloc[3][0] / 10, rwidth / 2 + trloc[3][1] / 10) - 50 * wheelsize - 2;
     tspeeds[3] *= -0.6 * min(b, 1);
   }
   tires[0] += tspeeds[0];
@@ -136,16 +142,19 @@ void updatePhysics() {
 }
 
 void drawCar(float a, float b) {
+  for (int i = 0; i < 4; i++) {
+    carh[i] += (tires[i] - carh[i]) * 0.1;
+  }
   stroke(0, 255, 255);
-  strokeWeight(10);
+  strokeWeight(6);
   line(a, tires[0], 190, a, tires[2], -190);
   line(b, tires[1], 190, b, tires[3], -190);
   line(a, (tires[0] + tires[2]) / 2, a + 100, (tires[0] + tires[2]) / 2 - 200);
   line(b, (tires[1] + tires[3]) / 2, b - 100, (tires[1] + tires[3]) / 2 - 200);
   line(a + 100, (tires[0] + tires[2]) / 2 - 200, b - 100, (tires[1] + tires[3]) / 2 - 200);
-  translate(width / 2, (tires[0] + tires[1] + tires[2] + tires[3]) / 4 - 150);
-  rotateZ(radians(angle(a + 100, (tires[0] + tires[2]) / 2 - 200, b - 100, (tires[1] + tires[3]) / 2 - 200)));
-  rotateX(-radians((angle(tires[0], -200, tires[2], 200) + angle(tires[1], -200, tires[3], 200)) / 2));
+  translate(width / 2, (carh[0] + carh[1] + carh[2] + carh[3]) / 4 - 150);
+  rotateZ(radians(angle(a + 100, (carh[0] + carh[2]) / 2 - 200, b - 100, (carh[1] + carh[3]) / 2 - 200)));
+  rotateX(-radians((angle(carh[0], -200, carh[2], 200) + angle(carh[1], -200, carh[3], 200)) / 2));
   stroke(200);
   strokeWeight(3);
   noFill();
@@ -180,9 +189,9 @@ void drawCar(float a, float b) {
   vertex(-points[15][0] * carlength, -240, points[15][1] * carheight);
   endShape(CLOSE);
   
-  rotateX(radians((angle(tires[0], -200, tires[2], 200) + angle(tires[1], -200, tires[3], 200)) / 2));
-  rotateZ(radians(angle(a + 100, (tires[0] + tires[2]) / 2 - 200, b - 100, (tires[1] + tires[3]) / 2 - 200)));
-  translate(width / -2, (tires[0] + tires[1] + tires[2] + tires[3]) / -4 + 150);
+  rotateX(radians((angle(carh[0], -200, carh[2], 200) + angle(carh[1], -200, carh[3], 200)) / 2));
+  rotateZ(radians(angle(a + 100, (carh[0] + carh[2]) / 2 - 200, b - 100, (carh[1] + carh[3]) / 2 - 200)));
+  translate(width / -2, (carh[0] + carh[1] + carh[2] + carh[3]) / -4 + 150);
 }
 
 void drawWheel(float x, int j, float z, float rot, boolean f) {
@@ -241,27 +250,39 @@ void drawTerrain() {
   tupd += 0.02;
 }
 
+int mode = 3; // 2 is default
+
 float terrain(float x, float y) {
-  /*if (x > rwidth / 2 && y > rwidth / 2) {
-    return sin(tupd) * 150 + 150;
+  switch (mode) {
+    case 0:
+      if (x > rwidth / 2 && y > rwidth / 2) {
+        return sin(tupd) * 150 + 150;
+      }
+      if (x < rwidth / 2 && y > rwidth / 2) {
+        return sin(tupd + HALF_PI) * 150 + 150;
+      }
+      if (x < rwidth / 2 && y < rwidth / 2) {
+        return sin(tupd + PI) * 150 + 150;
+      }
+      if (x > rwidth / 2 && y < rwidth / 2) {
+        return sin(tupd + PI + HALF_PI) * 150 + 150;
+      }
+      return 300;
+    case 1:
+      if (y > rwidth / 2) {
+        return sin(tupd) * 800 + 400;
+      }
+      return 300;
+    case 2:
+      x += tx;
+      y += ty;
+      return noise(x / 100.0, y / 100.0) * 600;
+    case 3:
+      return (x + tx) % 100 * 2 + 200;
+    case 4:
+      return (sin((x + tx) / 10) * 50 + 150) + (sin((y + ty) / 10) * 50 + 150);
   }
-  if (x < rwidth / 2 && y > rwidth / 2) {
-    return sin(tupd + HALF_PI) * 150 + 150;
-  }
-  if (x < rwidth / 2 && y < rwidth / 2) {
-    return sin(tupd + PI) * 150 + 150;
-  }
-  if (x > rwidth / 2 && y < rwidth / 2) {
-    return sin(tupd + PI + HALF_PI) * 150 + 150;
-  }
-  return 300;*/
-  /*if (y > rwidth / 2) {
-    return sin(tupd) * 800 + 400;
-  }
-  return 300;*/
-  x += tx;
-  y += ty;
-  return noise(x / 100.0, y / 100.0) * 600;
+  return 300;
 }
 
 float angle(float x1, float y1, float x2, float y2) {
